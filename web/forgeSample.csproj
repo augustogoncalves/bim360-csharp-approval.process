@@ -6,10 +6,13 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot\bundles\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Autodesk.Forge" Version="1.5.0" />
+    <PackageReference Include="Autodesk.Forge.DesignAutomation" Version="3.0.0-beta4" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.102.2" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 

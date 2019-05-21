@@ -72,19 +72,11 @@ namespace forgeSample.Controllers
             TwoLeggedApi oauth = new TwoLeggedApi();
             string grantType = "client_credentials";
             dynamic bearer = await oauth.AuthenticateAsync(
-              GetAppSetting("FORGE_CLIENT_ID"),
-              GetAppSetting("FORGE_CLIENT_SECRET"),
+              Utils.GetAppSetting("FORGE_CLIENT_ID"),
+              Utils.GetAppSetting("FORGE_CLIENT_SECRET"),
               grantType,
               scopes);
             return bearer;
-        }
-
-        /// <summary>
-        /// Reads appsettings from web.config
-        /// </summary>
-        public static string GetAppSetting(string settingKey)
-        {
-            return Environment.GetEnvironmentVariable(settingKey);
         }
     }
 }

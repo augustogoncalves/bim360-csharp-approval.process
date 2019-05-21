@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ApplicationPackage SchemaVersion="1.0" Version="1.0" ProductCode="{F11EA57A-1E7E-4B6D-8E81-986B071E3E07}" Name="DWGValidation" Description="DWG Validation with AutoCAD" Author="learnforge.autodesk.io">
+  <CompanyDetails Name="Autodesk, Inc" Url="http://learnforge.autodesk.io" Email="forge.help@autodesk.com"/>
+  <Components>
+    <RuntimeRequirements OS="Win64" Platform="AutoCAD" SeriesMin="R23.0" SeriesMax="R23.0"/>
+    <ComponentEntry AppName="DWGValidation" ModuleName="./Contents/DWGValidation.dll" AppDescription="" LoadOnCommandInvocation="True" LoadOnAutoCADStartup="True">
+      <Commands GroupName="CustomCommands">
+        <Command Global="RUNVALIDATION" Local="RUNVALIDATION"/>
+      </Commands>
+    </ComponentEntry>
+  </Components>
+</ApplicationPackage>

@@ -12,9 +12,8 @@ namespace forgeSample.Controllers
     {
         public string GetConnectionId() { return Context.ConnectionId; }
 
-        public async static Task ValidationFinished(IHubContext<ValidationHub> context, JObject body)
+        public async static Task ValidationFinished(IHubContext<ValidationHub> context,string connectionId, string inputFile, JObject body)
         {
-            string connectionId = body["hook"]["scope"]["workflow"].Value<String>();
             await context.Clients.Client(connectionId).SendAsync("validationFinished", body);
         }
 

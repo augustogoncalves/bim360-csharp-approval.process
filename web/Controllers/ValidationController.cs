@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.SignalR;
 using static Autodesk.Forge.Model.PostBucketsPayload;
+using Amazon.S3;
 
 namespace forgeSample.Controllers
 {
@@ -37,11 +38,14 @@ namespace forgeSample.Controllers
         [Route("api/validation")]
         public async Task<IActionResult> StartValidation([FromForm]UploadFile input)
         {
+            DesignAutomation4AutoCAD da4a = new DesignAutomation4AutoCAD();
+            //await da4a.ClearAccount();
+
             // save the file on the server
             var filePath = Path.Combine(_env.ContentRootPath, input.fileToUpload.FileName);
             using (var stream = new FileStream(filePath, FileMode.Create)) await input.fileToUpload.CopyToAsync(stream);
 
-            string bucketKey = string.Format("{0}-validation", OAuthController.GetAppSetting("FORGE_CLIENT_ID").ToLower());
+            string bucketKey = string.Format("{0}-validation", Utils.GetAppSetting("FORGE_CLIENT_ID").ToLower());
             string objectName = string.Format("{0}-{1}", DateTime.Now.ToString("yyyyMMddhhmmss"), Path.GetFileName(filePath));
 
             // upload to OSS
@@ -49,6 +53,9 @@ namespace forgeSample.Controllers
 
             // translate for vieweing
             await TranslateObject(bucketKey, objectName, input.sessionId);
+
+            // run validation
+            await da4a.StartDWGValidation(bucketKey, objectName, _env.WebRootPath, input.sessionId);
 
             return Ok();
         }
@@ -100,7 +107,7 @@ namespace forgeSample.Controllers
             dynamic existingHooks = await webhook.GetHooksAsync(DerivativeWebhookEvent.ExtractionFinished);
 
             // get the callback from your settings (e.g. web.config)
-            string callbackUlr = OAuthController.GetAppSetting("FORGE_WEBHOOK_URL") + "/api/forge/callback/modelderivative";
+            string callbackUlr = Utils.GetAppSetting("FORGE_WEBHOOK_URL") + "/api/forge/callback/modelderivative";
 
             bool createHook = true; // need to create, we don't know if our hook is already there...
             foreach (KeyValuePair<string, dynamic> hook in new DynamicDictionaryItems(existingHooks.data))
@@ -131,7 +138,7 @@ namespace forgeSample.Controllers
                 JobPayloadItem.ViewsEnum._3d
               })
             };
-            string urn = Base64Encode(string.Format("urn:adsk.objects:os.object:{0}/{1}", bucketKey, objectName));
+            string urn = Utils.Base64Encode(string.Format("urn:adsk.objects:os.object:{0}/{1}", bucketKey, objectName));
             JobPayload job = new JobPayload(new JobPayloadInput(urn), new JobPayloadOutput(outputs), new JobPayloadMisc(sessionId));
 
             // start the translation
@@ -149,10 +156,28 @@ namespace forgeSample.Controllers
             return Ok();
         }
 
-        public static string Base64Encode(string plainText)
+        [HttpPost]
+        [Route("/api/forge/callback/designautomation/autocad/{connectionId}/{resultJson}")]
+        public async Task<IActionResult> DesignAutomationCallback(string connectionId, string resultJson, [FromBody]JObject body)
         {
-            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
-            return System.Convert.ToBase64String(plainTextBytes);
+            var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(Utils.GetAppSetting("AWS_ACCESS_KEY"), Utils.GetAppSetting("AWS_SECRET_KEY"));
+            IAmazonS3 client = new AmazonS3Client(awsCredentials, Amazon.RegionEndpoint.USWest2);
+
+            if (!await client.DoesS3BucketExistAsync(Utils.S3BucketName)) return Ok();
+            Uri downloadFromS3 = new Uri(client.GeneratePreSignedURL(Utils.S3BucketName, resultJson, DateTime.Now.AddMinutes(10), null));
+
+            string resultJsonPath = Path.Combine(_env.WebRootPath, resultJson);
+            var keys = await client.GetAllObjectKeysAsync(Utils.S3BucketName, null, null);
+            if (!keys.Contains(resultJson)) return Ok(); // file is not there
+            await client.DownloadToFilePathAsync(Utils.S3BucketName, resultJson, resultJsonPath, null);
+            string contents = System.IO.File.ReadAllText(resultJsonPath);
+            System.IO.File.Delete(resultJsonPath);
+            //await client.DeleteObjectAsync(Utils.S3BucketName, resultJson);
+
+            await ValidationHub.ValidationFinished(_hubContext, connectionId, resultJson, JObject.Parse(contents));
+            return Ok();
+
+
         }
     }
 }
