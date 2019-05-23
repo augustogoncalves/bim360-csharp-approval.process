@@ -159,7 +159,7 @@ namespace forgeSample.Controllers
                 ItemsApi itemsApi = new ItemsApi();
                 itemsApi.Configuration.AccessToken = credentials.TokenInternal;
                 var newItem = await itemsApi.PostItemAsync(projectId, createItem);
-                return newItem;
+                return Ok();
             }
             else
             {
@@ -177,10 +177,8 @@ namespace forgeSample.Controllers
                 VersionsApi versionsApis = new VersionsApi();
                 versionsApis.Configuration.AccessToken = credentials.TokenInternal;
                 dynamic newVersion = await versionsApis.PostVersionAsync(projectId, newVersionData);
-                return newVersion;
+                return Ok();
             }
-
-            return Ok();
         }
 
         [HttpPost]
