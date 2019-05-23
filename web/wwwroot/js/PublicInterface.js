@@ -130,7 +130,6 @@ function zoomTo(handle) {
 
 function zoomToM(handles) {
     var viewer = viewerApp.myCurrentViewer;
-    const utils = new Autodesk.Viewing.Utilities(viewer);
 
     var ids = [];
     handles.split(',').forEach(function (handle) {
