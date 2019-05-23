@@ -5,7 +5,7 @@ $(document).ready(function () {
     });
 
     $('#sendProject').click(function () {
-        var file = $('#hiddenUploadField').files[0];
+        var file = $('#hiddenUploadField')[0].files[0];
 
         var formData = new FormData();
         formData.append('fileToUpload', file);

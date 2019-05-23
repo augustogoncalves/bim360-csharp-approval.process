@@ -47,8 +47,8 @@ namespace forgeSample.Controllers
         [Route("api/submit")]
         public async Task<IActionResult> SubmitProject([FromForm]InputSubmit input)
         {
-            string projectId = string.Empty;
-            string folderId = string.Empty;
+            string projectId = "b.014c6054-6da1-4ed8-b199-1975c07f608a";
+            string folderId = "urn:adsk.wipprod:fs.folder:co.1X3m8NAlRL-xNDQsXk_bxQ";
 
             Credentials credentials = await Credentials.FromDatabaseAsync(Utils.GetAppSetting("USERID"));
             dynamic token2lo = await OAuthController2L.GetInternalAsync();
