@@ -5,14 +5,14 @@ $(document).ready(function () {
     });
 
     $('#sendProject').click(function () {
-        var file = $('#hiddenUploadField')[0].files[0];
+        var file = $('#hiddenUploadField').files[0];
 
         var formData = new FormData();
         formData.append('fileToUpload', file);
-        formData.append('projectNumber', dataToSubmit.projectNumber);
+        formData.append('projectNumer', dataToSubmit.projectNumber);
 
         $.ajax({
-            url: '/api/submit',
+            url: '/api/validation',
             data: formData,
             processData: false,
             contentType: false,
@@ -121,7 +121,6 @@ var dataToSubmit = {};
 
 function zoomTo(handle) {
     var viewer = viewerApp.myCurrentViewer;
-    const utils = new Autodesk.Viewing.Utilities(viewer);
 
     viewer.search(handle, function (e) {
         viewer.select(e);
