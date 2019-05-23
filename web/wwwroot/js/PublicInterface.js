@@ -4,6 +4,36 @@ $(document).ready(function () {
         uploadFile();
     });
 
+    $('#sendProject').click(function () {
+        var file = $('#hiddenUploadField')[0].files[0];
+
+        var formData = new FormData();
+        formData.append('fileToUpload', file);
+        formData.append('projectNumber', dataToSubmit.projectNumber);
+
+        $.ajax({
+            url: '/api/submit',
+            data: formData,
+            processData: false,
+            contentType: false,
+            type: 'POST',
+            success: function (data) {
+                //_this.value = ''; // clear field
+            }
+        });
+
+
+       /* $.ajax({
+            url: '/api/submit',
+            type: 'post',
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (data) {
+            },
+            data: JSON.stringify(dataToSubmit)
+        });;*/
+    });
+
     $('#hiddenUploadField').change(function () {
         var _this = this;
         if (_this.files.length == 0) return;
@@ -19,8 +49,7 @@ $(document).ready(function () {
             contentType: false,
             type: 'POST',
             success: function (data) {
-
-                _this.value = ''; // clear field
+                //_this.value = ''; // clear field
             }
         });
     });
@@ -42,6 +71,13 @@ function startConnection(onReady) {
         .then(function () {
             connection.invoke('getConnectionId')
                 .then(function (id) {
+                    if (id.indexOf('_') !== -1) {
+                        console.log('Restarting...');
+                        connection.stop(); // need to fix this..
+                        connection = null;
+                        startConnection();
+                        return;
+                    }
                     connectionId = id; // we'll need this...
                     if (onReady) onReady();
                 });
@@ -51,11 +87,13 @@ function startConnection(onReady) {
         launchViewer(data.resourceUrn);
     });
 
-    connection.on("validationFinished", function (data) {
+    connection.on("validationFinished", function (fileName, data) {
         $('#validationList').empty();
         data.values.forEach(function (value) {
             switch (value.name.text.toLowerCase()) {
-                case "proprietário": case "proprietario": case "local": case "contribuintes": case "zona de uso":
+                case "contribuintes":
+                    dataToSubmit['projectNumber'] = value.value.text;
+                case "proprietário": case "proprietario": case "local": case "zona de uso":
                     $('#validationList').append('<li class="list-group-item validationItem" onclick="zoomTo(\'' + value.value.handle + '\')">' + value.name.text + ': ' + value.value.text + ' <span class="badge"><span class="glyphicon glyphicon-ok"></span></span></li>')
                     break;
             }
@@ -72,8 +110,14 @@ function startConnection(onReady) {
 
             $('#validationList').append('<li class="list-group-item validationItem" onclick="zoomToM(\'' + area.name.handle + ',' + handles.join(',') + '\')">' + area.name.text + '<span class="badge"><span class="glyphicon glyphicon-ok"></span></span></li>')
         });
+
+        dataToSubmit['fileName'] = fileName;
+
+        $('#readyToSubmit').show();
     });
 }
+
+var dataToSubmit = {};
 
 function zoomTo(handle) {
     var viewer = viewerApp.myCurrentViewer;

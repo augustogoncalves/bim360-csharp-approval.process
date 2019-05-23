@@ -217,7 +217,7 @@ namespace forgeSample.Controllers
                 ActivityId = ActivityFullName,
                 Arguments = new Dictionary<string, IArgument>()
                     {
-                        { "inputFile", BuildDownloadURL((await OAuthController.GetInternalAsync()).access_token, bucketKey, objectName) },
+                        { "inputFile", BuildDownloadURL((await OAuthController2L.GetInternalAsync()).access_token, bucketKey, objectName) },
                         { "results", await BuildUploadURL(resultJson) },
                         { "onComplete", new XrefTreeArgument { Verb = Verb.Post, Url = callbackUrl } }
                     }

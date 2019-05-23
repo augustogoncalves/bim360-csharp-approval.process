@@ -14,7 +14,7 @@ namespace forgeSample.Controllers
 
         public async static Task ValidationFinished(IHubContext<ValidationHub> context,string connectionId, string inputFile, JObject body)
         {
-            await context.Clients.Client(connectionId).SendAsync("validationFinished", body);
+            await context.Clients.Client(connectionId).SendAsync("validationFinished", inputFile.Replace(".json", ".dwg"), body);
         }
 
         public async static Task ExtractionFinished(IHubContext<ValidationHub> context, JObject body)

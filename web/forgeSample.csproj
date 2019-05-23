@@ -5,7 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\" />
+    <Content Remove="wwwroot\js\.DS_Store" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="wwwroot\bundles\" />
   </ItemGroup>
 
@@ -14,6 +17,7 @@
     <PackageReference Include="Autodesk.Forge.DesignAutomation" Version="3.0.0-beta4" />
     <PackageReference Include="AWSSDK.S3" Version="3.3.102.2" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="MongoDB.Driver" Version="2.8.1" />
   </ItemGroup>
 
 </Project>

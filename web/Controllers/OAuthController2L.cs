@@ -16,17 +16,15 @@
 // UNINTERRUPTED OR ERROR FREE.
 /////////////////////////////////////////////////////////////////////
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Autodesk.Forge;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
 
 namespace forgeSample.Controllers
 {
     [ApiController]
-    public class OAuthController : ControllerBase
+    public class OAuthController2L : ControllerBase
     {
         // As both internal & public tokens are used for all visitors
         // we don't need to request a new token on every request, so let's
