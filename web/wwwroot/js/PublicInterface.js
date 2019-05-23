@@ -12,7 +12,7 @@ $(document).ready(function () {
         formData.append('projectNumer', dataToSubmit.projectNumber);
 
         $.ajax({
-            url: '/api/validation',
+            url: '/api/submit',
             data: formData,
             processData: false,
             contentType: false,
