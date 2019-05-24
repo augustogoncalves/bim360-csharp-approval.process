@@ -35,6 +35,7 @@ namespace forgeSample.Controllers
                 TwilioClient.Init(Utils.GetAppSetting("TWILIO_ACCOUNT_SID"), Utils.GetAppSetting("TWILIO_TOKEN"));
 
                 var doc = (await NotificationDB.GetPhones((string)issue.attributes.target_urn));
+                if (doc == null) return;
                 List<string> phones = BsonSerializer.Deserialize<List<string>>(doc["phone"].ToJson());
 
                 foreach (string phone in phones)
