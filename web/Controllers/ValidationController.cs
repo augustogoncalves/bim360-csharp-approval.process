@@ -38,6 +38,7 @@ namespace forgeSample.Controllers
         {
             public IFormFile fileToUpload { get; set; }
             public string projectNumber { get; set; }
+            public string phoneNumber { get; set; }
         }
 
 
@@ -159,7 +160,7 @@ namespace forgeSample.Controllers
                 ItemsApi itemsApi = new ItemsApi();
                 itemsApi.Configuration.AccessToken = credentials.TokenInternal;
                 var newItem = await itemsApi.PostItemAsync(projectId, createItem);
-                return Ok();
+                itemId = newItem.data.id;
             }
             else
             {
@@ -177,8 +178,11 @@ namespace forgeSample.Controllers
                 VersionsApi versionsApis = new VersionsApi();
                 versionsApis.Configuration.AccessToken = credentials.TokenInternal;
                 dynamic newVersion = await versionsApis.PostVersionAsync(projectId, newVersionData);
-                return Ok();
             }
+
+            await NotificationDB.Register(itemId, input.phoneNumber);
+
+            return Ok();
         }
 
         [HttpPost]

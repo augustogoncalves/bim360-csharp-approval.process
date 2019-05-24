@@ -10,6 +10,7 @@ $(document).ready(function () {
         var formData = new FormData();
         formData.append('fileToUpload', file);
         formData.append('projectNumer', dataToSubmit.projectNumber);
+        formData.append('phoneNumber', $('#phone').val());
 
         $.ajax({
             url: '/api/submit',

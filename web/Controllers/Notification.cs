@@ -1,4 +1,6 @@
 ﻿using Autodesk.Forge;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
@@ -32,11 +34,18 @@ namespace forgeSample.Controllers
 
                 TwilioClient.Init(Utils.GetAppSetting("TWILIO_ACCOUNT_SID"), Utils.GetAppSetting("TWILIO_TOKEN"));
 
-                var message = MessageResource.Create(
-                    from: new Twilio.Types.PhoneNumber(Utils.GetAppSetting("TWILIO_FROM_NUMBER")),
-                    body: "Foram feitas observacoes no seu projeto, acesse o site da Prefeitura de Sao Paulo para visualizar",
-                    to: new Twilio.Types.PhoneNumber("+5511985742828")
-                );
+                var doc = (await NotificationDB.GetPhones((string)issue.attributes.target_urn));
+                List<string> phones = BsonSerializer.Deserialize<List<string>>(doc["phone"].ToJson());
+
+                foreach (string phone in phones)
+                {
+                    string phoneStr = phone.ToString();
+                    var message = MessageResource.Create(
+                        from: new Twilio.Types.PhoneNumber(Utils.GetAppSetting("TWILIO_FROM_NUMBER")),
+                        body: "Foram feitas observacoes no seu projeto, acesse o site da Prefeitura de Sao Paulo para visualizar",
+                        to: new Twilio.Types.PhoneNumber(phoneStr)
+                    );
+                }
 
                 await AddCommnetAsync(credentials, containerId, (string)issue.id, "SMS enviado");
             }
@@ -57,7 +66,7 @@ namespace forgeSample.Controllers
             RestClient client = new RestClient(BASE_URL);
             RestRequest request = new RestRequest("/issues/v1/containers/{container_id}/quality-issues?filter[created_at]={minuteAgo}", RestSharp.Method.GET);
             request.AddParameter("container_id", containerId, ParameterType.UrlSegment);
-            request.AddParameter("minuteAgo", DateTime.Now.AddMinutes(-90).ToString("o"), ParameterType.UrlSegment);
+            request.AddParameter("minuteAgo", DateTime.Now.AddMinutes(-534).ToString("o"), ParameterType.UrlSegment);
             request.AddHeader("Authorization", "Bearer " + credentials.TokenInternal);
             return JObject.Parse((await client.ExecuteTaskAsync<IRestResponse>(request)).Content);
         }
@@ -79,7 +88,7 @@ namespace forgeSample.Controllers
             request.AddParameter("container_id", containerId, ParameterType.UrlSegment);
             request.AddParameter("issue_id", issueId, ParameterType.UrlSegment);
             request.AddHeader("Content-Type", "application/vnd.api+json");
-            request.AddParameter("text/json", Newtonsoft.Json.JsonConvert.SerializeObject(JObject.Parse(  "{'data': { 'type': 'comments', 'attributes': { 'issue_id': '" + issueId + "', 'body': '" + comment + "' } } }")) , ParameterType.RequestBody);
+            request.AddParameter("text/json", Newtonsoft.Json.JsonConvert.SerializeObject(JObject.Parse("{'data': { 'type': 'comments', 'attributes': { 'issue_id': '" + issueId + "', 'body': '" + comment + "' } } }")), ParameterType.RequestBody);
             request.AddHeader("Authorization", "Bearer " + credentials.TokenInternal);
             string ret = (await client.ExecuteTaskAsync<IRestResponse>(request)).Content;
             return ret;
