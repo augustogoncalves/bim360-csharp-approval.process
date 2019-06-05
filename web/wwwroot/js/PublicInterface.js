@@ -24,15 +24,15 @@ $(document).ready(function () {
         });
 
 
-       /* $.ajax({
-            url: '/api/submit',
-            type: 'post',
-            dataType: 'json',
-            contentType: 'application/json',
-            success: function (data) {
-            },
-            data: JSON.stringify(dataToSubmit)
-        });;*/
+        /* $.ajax({
+             url: '/api/submit',
+             type: 'post',
+             dataType: 'json',
+             contentType: 'application/json',
+             success: function (data) {
+             },
+             data: JSON.stringify(dataToSubmit)
+         });;*/
     });
 
     $('#hiddenUploadField').change(function () {
@@ -100,21 +100,31 @@ function startConnection(onReady) {
             }
         })
 
+        var check = false;
         data.areas.forEach(function (area) {
             if (area.name.text.toLowerCase().indexOf('não computável') > 1) return;
             if (area.name.text.toLowerCase().indexOf('computável') == -1) return;
 
+            if (area.name.text.toLowerCase().indexOf('permeável') > -1) check = true;
+
             var handles = [];
+            var areaTotal = 0.0;
             area.hatches.forEach(function (h) {
                 handles.push(h.handle);
+                areaTotal += h.area;
             })
 
-            $('#validationList').append('<li class="list-group-item validationItem" onclick="zoomToM(\'' + area.name.handle + ',' + handles.join(',') + '\')">' + area.name.text + '<span class="badge"><span class="glyphicon glyphicon-ok"></span></span></li>')
+            $('#validationList').append('<li class="list-group-item validationItem" onclick="zoomToM(\'' + handles.join(',') + '\')">' + area.name.text + ' (' + Math.round(areaTotal / 10) / 100 + 'm<sup>2</sup>)<span class="badge"><span class="glyphicon glyphicon-ok"></span></span></li>')
         });
 
-        dataToSubmit['fileName'] = fileName;
-
-        $('#readyToSubmit').show();
+        // hack to just check this information
+        if (!check) {
+            $('#validationList').append('<li class="list-group-item list-group-item-danger validationItem">ÁREA PERMEÁVEL - COMPUTÁVEL<span class="badge"><span class="glyphicon glyphicon-remove"></span></span></li>')
+        }
+        else {
+            dataToSubmit['fileName'] = fileName;
+            $('#readyToSubmit').show();
+        }
     });
 }
 
@@ -124,8 +134,8 @@ function zoomTo(handle) {
     var viewer = viewerApp.myCurrentViewer;
 
     viewer.search(handle, function (e) {
+        viewer.isolate(e);
         viewer.select(e);
-        viewer.utilities.fitToView(e);
     });
 }
 
@@ -133,12 +143,19 @@ function zoomToM(handles) {
     var viewer = viewerApp.myCurrentViewer;
 
     var ids = [];
-    handles.split(',').forEach(function (handle) {
-        viewer.search(handle, function (e) {
-            ids.push(e[0])
-            viewer.select(ids);
-            viewer.utilities.fitToView(ids);
-        }, null, ['Handle']);
+    if (handles.length == 0) {
+        viewer.isolate(0);
+        viewer.select();
+        viewer.utilities.goHome();
+    }
+    else {
+        handles.split(',').forEach(function (handle) {
+            viewer.search(handle, function (e) {
+                ids.push(e[0])
+                viewer.isolate(ids);
+                viewer.select(ids);
+            }, null, ['Handle']);
 
-    })
+        })
+    }
 }
